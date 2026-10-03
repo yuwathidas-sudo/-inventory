@@ -31,7 +31,29 @@ def new_db():
           "pos": {}, "logs": [], "seq": 1}
     db["users"]["admin"] = {"pw": hash_pw("admin1234"), "role": "admin"}
     db["users"]["staff"] = {"pw": hash_pw("staff1234"), "role": "staff"}
+    seed_demo(db)
     return db
+
+
+DEMO = [
+    ("W001", "น้ำดื่ม", "เครื่องดื่ม", "ขวด", 5, 10, 20, 50),
+    ("W002", "ชาเขียว", "เครื่องดื่ม", "ขวด", 12, 20, 10, 8),
+    ("S001", "มันฝรั่งทอด", "ขนม", "ถุง", 15, 25, 10, 30),
+    ("S002", "ช็อกโกแลตแท่ง", "ขนม", "แท่ง", 8, 15, 15, 0),
+    ("F001", "ข้าวกล่อง", "อาหาร", "กล่อง", 25, 40, 10, 12),
+    ("F002", "บะหมี่กึ่งสำเร็จรูป", "อาหาร", "ซอง", 5, 8, 30, 100),
+    ("H001", "สบู่ก้อน", "ของใช้", "ก้อน", 10, 18, 5, 3),
+    ("H002", "ยาสีฟัน", "ของใช้", "หลอด", 30, 55, 8, 25),
+]
+
+
+def seed_demo(db):
+    """ข้อมูลตัวอย่าง: ถูกสร้างเมื่อไม่มีไฟล์ข้อมูล (เช่น Vercel ล้าง /tmp)"""
+    for sku, name, cat, unit, cost, price, reorder, qty in DEMO:
+        add_product(db, "admin", {"sku": sku, "name": name, "category": cat, "unit": unit,
+                                  "cost": float(cost), "price": float(price), "reorder": reorder, "qty": qty})
+    add_supplier(db, "admin", "บริษัท เครื่องดื่มไทย จำกัด", "021234567")
+    add_supplier(db, "admin", "ร้านขายส่งสมชาย", "0812345678")
 
 
 def load():
@@ -234,3 +256,12 @@ def receive_po(db, user, poid):
     if not err:
         po["status"] = "received"
     return err
+
+
+# ---------- รายงาน ----------
+def report_rows(db):
+    """รายงานสินค้าคงเหลือ + มูลค่าสต็อก (คืน rows, มูลค่ารวม)"""
+    rows = []
+    for p in sorted(db["products"].values(), key=lambda x: x["sku"]):
+        rows.append((p["sku"], p["name"], p["category"], p["unit"], p["qty"], p["cost"], p["qty"] * p["cost"]))
+    return rows, sum(r[6] for r in rows)
