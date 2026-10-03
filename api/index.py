@@ -8,12 +8,27 @@ import store
 SECRET = os.environ.get("SECRET", "dev-secret-change-me").encode()
 STAFF = ("admin", "staff")
 ALL = ("admin", "staff", "customer")
-CSS = ("body{font-family:sans-serif;margin:0;background:#f4f6f8}nav{background:#0f6cbd;padding:10px;display:flex;gap:12px;flex-wrap:wrap}"
-       "nav a,nav span{color:#fff;text-decoration:none}main{max-width:900px;margin:auto;padding:12px}"
-       "input,select,button{padding:8px;margin:4px 0;width:100%;box-sizing:border-box}button{width:auto;cursor:pointer}"
-       "table{border-collapse:collapse;width:100%;background:#fff;display:block;overflow-x:auto}td,th{border:1px solid #ddd;padding:6px;text-align:left}"
-       ".msg{background:#e6f4ea;padding:8px}.err{background:#fde8e8;padding:8px;margin:4px 0}.card{display:inline-block;background:#fff;padding:12px;margin:4px;min-width:130px}"
-       ".low{color:#b00020;font-weight:bold}form.inline{display:inline}")
+CSS = (":root{--b:#0f6cbd;--d:#0b3d6b}*{box-sizing:border-box}"
+       "body{font-family:'Sarabun','Noto Sans Thai',sans-serif;margin:0;background:#eef2f7;color:#1f2937;font-size:17px}"
+       "nav{background:linear-gradient(90deg,#0b3d6b,#0f6cbd);padding:10px 16px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}"
+       "nav a,nav span{color:#fff;text-decoration:none;padding:6px 12px;border-radius:8px}nav a:hover{background:rgba(255,255,255,.2)}"
+       "nav span{margin-left:auto;opacity:.85}nav a.brand{font-weight:700;font-size:19px;margin-right:8px}"
+       "main{max-width:1000px;margin:24px auto;padding:0 16px}h2{margin:8px 0 16px;color:var(--d)}h3{color:var(--d)}a{color:var(--b)}"
+       "main>form{background:#fff;padding:16px 20px;border-radius:14px;max-width:640px;margin-bottom:18px;box-shadow:0 1px 6px rgba(0,0,0,.08)}"
+       "label{display:block;font-weight:600;margin-top:8px}"
+       "input,select{width:100%;padding:10px 12px;margin:4px 0;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}"
+       "input:focus,select:focus{outline:2px solid #93c5fd;border-color:var(--b)}"
+       "button{background:var(--b);color:#fff;border:0;border-radius:10px;padding:10px 20px;margin-top:6px;font:inherit;font-weight:600;cursor:pointer}"
+       "button:hover{background:var(--d)}button[onclick]{background:#dc2626}button[onclick]:hover{background:#991b1b}"
+       "td form.inline button{padding:5px 12px;font-size:14px;margin:0}"
+       ".tw{overflow-x:auto;background:#fff;border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.08);margin-bottom:16px}"
+       "table{border-collapse:collapse;width:100%}th{background:#e3edf9;color:var(--d)}"
+       "th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #e5eaf1;white-space:nowrap}tr:hover td{background:#f5f9ff}"
+       ".msg{background:#dcfce7;color:#166534;padding:12px 16px;border-radius:10px;border-left:5px solid #16a34a}"
+       ".err{background:#fee2e2;color:#991b1b;padding:12px 16px;margin:6px 0;border-radius:10px;border-left:5px solid #dc2626}"
+       ".card{display:inline-block;background:#fff;padding:16px 22px;margin:6px 10px 10px 0;min-width:160px;border-radius:14px;border-top:4px solid var(--b);box-shadow:0 1px 6px rgba(0,0,0,.08)}"
+       ".card b{font-size:28px;color:var(--d)}"
+       ".low{background:#fee2e2;color:#b91c1c;padding:2px 10px;border-radius:999px;font-weight:600;font-size:14px}form.inline{display:inline}")
 
 
 def esc(s):
@@ -55,18 +70,18 @@ def read_cookie(raw):
 
 # ---------- HTML ----------
 def page(user, title, body, msg=""):
-    nav = ""
+    nav = '<a class="brand" href="/">📦 ระบบสต็อกสินค้า</a>'
     if user:
         links = [("/products", "สินค้า")]
         if user["role"] in STAFF:
             links = [("/dashboard", "แดชบอร์ด"), ("/products", "สินค้า"), ("/report", "รายงาน"), ("/suppliers", "ผู้ขาย"), ("/pos", "ใบสั่งซื้อ")]
         if user["role"] == "admin":
             links += [("/logs", "Log"), ("/users", "ผู้ใช้")]
-        nav = "".join('<a href="%s">%s</a>' % l for l in links)
+        nav += "".join('<a href="%s">%s</a>' % l for l in links)
         nav += '<span>%s (%s)</span><a href="/logout">ออก</a>' % (esc(user["name"]), user["role"])
     flash = ('<p class="%s">%s</p>' % ("err" if msg.startswith("!") else "msg", esc(msg.lstrip("!")))) if msg else ""
     return ("<!doctype html><html lang=th><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
-            "<title>%s</title><style>%s</style><nav>%s</nav><main>%s%s</main></html>") % (esc(title), CSS, nav, flash, body)
+            "<title>%s</title><link href='https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap' rel=stylesheet><style>%s</style><nav>%s</nav><main>%s%s</main></html>") % (esc(title), CSS, nav, flash, body)
 
 
 def errbox(errs):
@@ -107,7 +122,7 @@ def status_of(p):
 
 
 def table(head, rows):
-    return "<table><tr>%s</tr>%s</table>" % ("".join("<th>%s</th>" % h for h in head),
+    return '<div class="tw"><table><tr>%s</tr>%s</table></div>' % ("".join("<th>%s</th>" % h for h in head),
                                               "".join("<tr>%s</tr>" % "".join("<td>%s</td>" % c for c in r) for r in rows))
 
 
