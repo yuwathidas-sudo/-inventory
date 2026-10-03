@@ -8,27 +8,36 @@ import store
 SECRET = os.environ.get("SECRET", "dev-secret-change-me").encode()
 STAFF = ("admin", "staff")
 ALL = ("admin", "staff", "customer")
-CSS = (":root{--b:#0f6cbd;--d:#0b3d6b}*{box-sizing:border-box}"
-       "body{font-family:'Sarabun','Noto Sans Thai',sans-serif;margin:0;background:#eef2f7;color:#1f2937;font-size:17px}"
-       "nav{background:linear-gradient(90deg,#0b3d6b,#0f6cbd);padding:10px 16px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.2)}"
-       "nav a,nav span{color:#fff;text-decoration:none;padding:6px 12px;border-radius:8px}nav a:hover{background:rgba(255,255,255,.2)}"
-       "nav span{margin-left:auto;opacity:.85}nav a.brand{font-weight:700;font-size:19px;margin-right:8px}"
-       "main{max-width:1000px;margin:24px auto;padding:0 16px}h2{margin:8px 0 16px;color:var(--d)}h3{color:var(--d)}a{color:var(--b)}"
-       "main>form{background:#fff;padding:16px 20px;border-radius:14px;max-width:640px;margin-bottom:18px;box-shadow:0 1px 6px rgba(0,0,0,.08)}"
+CSS = (":root{--p:#ff8fb8;--v:#a78bfa;--b:#7cc4ff;--d:#5b4b8a}*{box-sizing:border-box}"
+       "body{font-family:'Sarabun','Noto Sans Thai',sans-serif;margin:0;color:#3b3355;font-size:17px;min-height:100vh;"
+       "background:radial-gradient(circle at 8% 8%,#ffd6e8 0,transparent 32%),radial-gradient(circle at 92% 18%,#d9e4ff 0,transparent 34%),"
+       "radial-gradient(circle at 78% 92%,#d6f7e6 0,transparent 34%),radial-gradient(circle at 12% 85%,#fff1c9 0,transparent 30%),#fff8fc;background-attachment:fixed}"
+       "nav{background:linear-gradient(90deg,#ff8fb8,#b69cff 55%,#7cc4ff);padding:10px 16px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;"
+       "box-shadow:0 4px 18px rgba(167,139,250,.35);border-radius:0 0 22px 22px}"
+       "nav a,nav span{color:#fff;text-decoration:none;padding:6px 13px;border-radius:999px;text-shadow:0 1px 2px rgba(80,50,120,.35)}"
+       "nav a:hover{background:rgba(255,255,255,.3)}nav span{margin-left:auto}"
+       "nav a.brand{font-family:'Mali','Sarabun',sans-serif;font-weight:700;font-size:20px;margin-right:8px}"
+       "main{max-width:1000px;margin:26px auto;padding:0 16px}main::after{content:'✨ ทำด้วยใจ ✨';display:block;text-align:center;margin:34px 0 10px;color:#b79ad9;font-family:'Mali',sans-serif}"
+       "h2,h3{font-family:'Mali','Sarabun',sans-serif;color:var(--d)}h2{margin:8px 0 16px}h2::before{content:'🌸 '}h3::before{content:'💗 '}a{color:#7c5cd6}"
+       "main>form{background:rgba(255,255,255,.85);padding:18px 22px;border-radius:22px;max-width:640px;margin-bottom:18px;"
+       "box-shadow:0 6px 22px rgba(167,139,250,.18);border:2px solid #f3e8ff}"
        "label{display:block;font-weight:600;margin-top:8px}"
-       "input,select{width:100%;padding:10px 12px;margin:4px 0;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}"
-       "input:focus,select:focus{outline:2px solid #93c5fd;border-color:var(--b)}"
-       "button{background:var(--b);color:#fff;border:0;border-radius:10px;padding:10px 20px;margin-top:6px;font:inherit;font-weight:600;cursor:pointer}"
-       "button:hover{background:var(--d)}button[onclick]{background:#dc2626}button[onclick]:hover{background:#991b1b}"
-       "td form.inline button{padding:5px 12px;font-size:14px;margin:0}"
-       ".tw{overflow-x:auto;background:#fff;border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.08);margin-bottom:16px}"
-       "table{border-collapse:collapse;width:100%}th{background:#e3edf9;color:var(--d)}"
-       "th,td{padding:10px 14px;text-align:left;border-bottom:1px solid #e5eaf1;white-space:nowrap}tr:hover td{background:#f5f9ff}"
-       ".msg{background:#dcfce7;color:#166534;padding:12px 16px;border-radius:10px;border-left:5px solid #16a34a}"
-       ".err{background:#fee2e2;color:#991b1b;padding:12px 16px;margin:6px 0;border-radius:10px;border-left:5px solid #dc2626}"
-       ".card{display:inline-block;background:#fff;padding:16px 22px;margin:6px 10px 10px 0;min-width:160px;border-radius:14px;border-top:4px solid var(--b);box-shadow:0 1px 6px rgba(0,0,0,.08)}"
-       ".card b{font-size:28px;color:var(--d)}"
-       ".low{background:#fee2e2;color:#b91c1c;padding:2px 10px;border-radius:999px;font-weight:600;font-size:14px}form.inline{display:inline}")
+       "input,select{width:100%;padding:10px 14px;margin:4px 0;border:2px solid #eadcff;border-radius:14px;font:inherit;background:#fff}"
+       "input:focus,select:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 4px rgba(255,143,184,.22)}"
+       "button{background:linear-gradient(90deg,#ff8fb8,#a78bfa);color:#fff;border:0;border-radius:999px;padding:10px 24px;margin-top:6px;"
+       "font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(167,139,250,.35)}"
+       "button:hover{filter:brightness(1.06);transform:translateY(-1px)}button[onclick]{background:linear-gradient(90deg,#ff8a8a,#ff6f91)}"
+       "td form.inline button{padding:5px 14px;font-size:14px;margin:0}"
+       ".tw{overflow-x:auto;background:rgba(255,255,255,.9);border-radius:22px;box-shadow:0 6px 22px rgba(167,139,250,.18);margin-bottom:18px;border:2px solid #f3e8ff}"
+       "table{border-collapse:collapse;width:100%}th{background:#ffe3f0;color:var(--d)}"
+       "th,td{padding:11px 14px;text-align:left;border-bottom:1px dashed #eadcff;white-space:nowrap}tr:last-child td{border-bottom:0}tr:hover td{background:#faf5ff}"
+       ".msg{background:#d9f7e6;color:#1e6b46;padding:12px 18px;border-radius:16px;border:2px solid #b5ecd0}.msg::before{content:'🎉 '}"
+       ".err{background:#ffe0e8;color:#9d2650;padding:12px 18px;margin:6px 0;border-radius:16px;border:2px solid #ffc2d4}.err::before{content:'🙈 '}"
+       ".card{display:inline-block;background:rgba(255,255,255,.9);padding:16px 22px;margin:6px 10px 12px 0;min-width:160px;border-radius:22px;"
+       "box-shadow:0 6px 18px rgba(167,139,250,.2);border:2px solid #f3e8ff;border-top:6px solid var(--p)}"
+       ".card:nth-child(2){border-top-color:var(--v)}.card:nth-child(3){border-top-color:var(--b)}.card:nth-child(4){border-top-color:#6fdcae}"
+       ".card b{font-size:28px;color:var(--d);font-family:'Mali',sans-serif}"
+       ".low{background:#ffe0e8;color:#c0305f;padding:2px 12px;border-radius:999px;font-weight:700;font-size:14px}form.inline{display:inline}")
 
 
 def esc(s):
@@ -70,18 +79,18 @@ def read_cookie(raw):
 
 # ---------- HTML ----------
 def page(user, title, body, msg=""):
-    nav = '<a class="brand" href="/">📦 ระบบสต็อกสินค้า</a>'
+    nav = '<a class="brand" href="/">🧁 ระบบสต็อกสินค้า</a>'
     if user:
-        links = [("/products", "สินค้า")]
+        links = [("/products", "🛍️ สินค้า")]
         if user["role"] in STAFF:
-            links = [("/dashboard", "แดชบอร์ด"), ("/products", "สินค้า"), ("/report", "รายงาน"), ("/suppliers", "ผู้ขาย"), ("/pos", "ใบสั่งซื้อ")]
+            links = [("/dashboard", "🏠 แดชบอร์ด"), ("/products", "🛍️ สินค้า"), ("/report", "📊 รายงาน"), ("/suppliers", "🚚 ผู้ขาย"), ("/pos", "🧾 ใบสั่งซื้อ")]
         if user["role"] == "admin":
-            links += [("/logs", "Log"), ("/users", "ผู้ใช้")]
+            links += [("/logs", "📜 Log"), ("/users", "👥 ผู้ใช้")]
         nav += "".join('<a href="%s">%s</a>' % l for l in links)
         nav += '<span>%s (%s)</span><a href="/logout">ออก</a>' % (esc(user["name"]), user["role"])
     flash = ('<p class="%s">%s</p>' % ("err" if msg.startswith("!") else "msg", esc(msg.lstrip("!")))) if msg else ""
     return ("<!doctype html><html lang=th><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
-            "<title>%s</title><link href='https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap' rel=stylesheet><style>%s</style><nav>%s</nav><main>%s%s</main></html>") % (esc(title), CSS, nav, flash, body)
+            "<title>%s</title><link href='https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Mali:wght@500;700&display=swap' rel=stylesheet><style>%s</style><nav>%s</nav><main>%s%s</main></html>") % (esc(title), CSS, nav, flash, body)
 
 
 def errbox(errs):
