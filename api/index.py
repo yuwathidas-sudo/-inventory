@@ -1,4 +1,4 @@
-import os, sys, re, html, hmac, hashlib, time
+import os, sys, re, html, hmac, hashlib, time, csv, io
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -21,8 +21,9 @@ def esc(s):
 
 
 class Resp(Exception):
-    def __init__(self, code=200, body="", loc=None, cookie=None):
+    def __init__(self, code=200, body="", loc=None, cookie=None, ctype="text/html; charset=utf-8", fname=None):
         self.code, self.body, self.loc, self.cookie = code, body, loc, cookie
+        self.ctype, self.fname = ctype, fname
 
 
 def go(path, msg=""):
@@ -58,12 +59,12 @@ def page(user, title, body, msg=""):
     if user:
         links = [("/products", "สินค้า")]
         if user["role"] in STAFF:
-            links = [("/dashboard", "แดชบอร์ด"), ("/products", "สินค้า"), ("/suppliers", "ผู้ขาย"), ("/pos", "ใบสั่งซื้อ")]
+            links = [("/dashboard", "แดชบอร์ด"), ("/products", "สินค้า"), ("/report", "รายงาน"), ("/suppliers", "ผู้ขาย"), ("/pos", "ใบสั่งซื้อ")]
         if user["role"] == "admin":
             links += [("/logs", "Log"), ("/users", "ผู้ใช้")]
         nav = "".join('<a href="%s">%s</a>' % l for l in links)
         nav += '<span>%s (%s)</span><a href="/logout">ออก</a>' % (esc(user["name"]), user["role"])
-    flash = '<p class="msg">%s</p>' % esc(msg) if msg else ""
+    flash = ('<p class="%s">%s</p>' % ("err" if msg.startswith("!") else "msg", esc(msg.lstrip("!")))) if msg else ""
     return ("<!doctype html><html lang=th><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
             "<title>%s</title><style>%s</style><nav>%s</nav><main>%s%s</main></html>") % (esc(title), CSS, nav, flash, body)
 
@@ -161,6 +162,21 @@ def dispatch(m, path, q, form, db, user):
         cat = table(["หมวด", "มูลค่า"], [[esc(k), "%.2f" % v] for k, v in sorted(s["by_cat"].items())])
         return Resp(200, page(user, "แดชบอร์ด", "<h2>แดชบอร์ด</h2>%s<h3>แจ้งเตือนต่ำกว่าจุดสั่งซื้อ</h3>%s<h3>มูลค่าสต็อกตามหมวด</h3>%s" % (cards, low, cat), msg))
 
+    if path in ("/report", "/report.csv"):
+        need(user, *STAFF)
+        rows, total = store.report_rows(db)
+        if path == "/report.csv":
+            buf = io.StringIO()
+            w = csv.writer(buf)
+            w.writerow(["SKU", "ชื่อ", "หมวด", "หน่วย", "คงเหลือ", "ราคาทุน", "มูลค่า"])
+            for r in rows:  # กัน CSV injection: ข้อความที่ขึ้นต้นด้วย = + - @
+                w.writerow([("'" + c) if isinstance(c, str) and c and c[0] in "=+-@" else c for c in r])
+            return Resp(200, "\ufeff" + buf.getvalue(), ctype="text/csv; charset=utf-8", fname="stock_report.csv")
+        t = table(["SKU", "ชื่อ", "หมวด", "คงเหลือ", "ราคาทุน", "มูลค่า"],
+                  [[esc(r[0]), esc(r[1]), esc(r[2]), "%d %s" % (r[4], esc(r[3])), "%.2f" % r[5], "%.2f" % r[6]] for r in rows]
+                  + [["<b>รวม</b>", "", "", "", "", "<b>%.2f</b>" % total]])
+        return Resp(200, page(user, "รายงาน", '<h2>รายงานสินค้าคงเหลือและมูลค่าสต็อก</h2><p><a href="/report.csv">ส่งออก CSV (เปิดใน Excel)</a></p>' + t, msg))
+
     if path == "/products":
         need(user, *ALL)
         try:
@@ -214,7 +230,7 @@ def dispatch(m, path, q, form, db, user):
             return go("/products")
         if act == "move" and m == "POST":
             err = store.move_stock(db, uname, pid, form.get("kind", ""), form.get("qty", ""), form.get("reason", ""))
-            return go("/products/" + pid, err or "บันทึกรายการแล้ว")
+            return go("/products/" + pid, ("!" + err) if err else "บันทึกรายการแล้ว")
         if act == "edit":
             if m == "POST":
                 c, errs = store.validate_product(db, form, pid, False)
@@ -266,7 +282,8 @@ def dispatch(m, path, q, form, db, user):
     mt = re.fullmatch(r"/pos/(\d+)/receive", path)
     if mt and m == "POST":
         need(user, *STAFF)
-        return go("/pos", store.receive_po(db, uname, mt.group(1)) or "รับของเข้าคลังแล้ว")
+        err = store.receive_po(db, uname, mt.group(1))
+        return go("/pos", ("!" + err) if err else "รับของเข้าคลังแล้ว")
 
     if path == "/logs":
         need(user, "admin")
@@ -278,9 +295,9 @@ def dispatch(m, path, q, form, db, user):
         if m == "POST":
             target, role = form.get("username", ""), form.get("role", "")
             if target not in db["users"] or role not in store.ROLES:
-                return go("/users", "ข้อมูลไม่ถูกต้อง")
+                return go("/users", "!ข้อมูลไม่ถูกต้อง")
             if target == uname:
-                return go("/users", "ไม่สามารถเปลี่ยนสิทธิ์ของตัวเองได้")
+                return go("/users", "!ไม่สามารถเปลี่ยนสิทธิ์ของตัวเองได้")
             db["users"][target]["role"] = role
             store.log(db, uname, "role_change", "%s → %s" % (target, role))
             return go("/users", "เปลี่ยนสิทธิ์แล้ว")
@@ -327,7 +344,9 @@ class handler(BaseHTTPRequestHandler):
         if r.cookie is not None:
             self.send_header("Set-Cookie", "sid=%s; Path=/; HttpOnly; SameSite=Lax%s" % (r.cookie, "; Max-Age=0" if r.cookie == "" else ""))
         body = r.body.encode("utf-8")
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Type", r.ctype)
+        if r.fname:
+            self.send_header("Content-Disposition", 'attachment; filename="%s"' % r.fname)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
